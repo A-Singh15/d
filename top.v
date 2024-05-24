@@ -46,10 +46,10 @@ module top (
   Comparator comp_u (
     .clock(clock),
     .CompStart(CompStart),
-    .Accumulate(Accumulate),
+    .PEout(Accumulate),  // corrected
     .PEready(PEready),
-    .VectorX(VectorX),
-    .VectorY(VectorY),
+    .vectorX(VectorX),
+    .vectorY(VectorY),
     .bestDistance(bestDistance),
     .motionX(motionX),
     .motionY(motionY)
@@ -64,7 +64,7 @@ module PE (
   input S1S2mux, newDist,
   output [7:0] Accumulate, Rpipe
 );
-  reg [7:0] Accumulate, AccumulateIn, difference, difference_temp, Rpipe;
+  reg [7:0] AccumulateIn, difference, difference_temp;
   reg Carry;
 
   always @(posedge clock) Rpipe <= R;
@@ -87,7 +87,7 @@ module PEend (
   input S1S2mux, newDist,
   output [7:0] Accumulate
 );
-  reg [7:0] Accumulate, AccumulateIn, difference, difference_temp;
+  reg [7:0] AccumulateIn, difference, difference_temp;
   reg Carry;
 
   always @(posedge clock) Accumulate <= AccumulateIn;
@@ -150,7 +150,7 @@ endmodule
 module Comparator (
   input clock,
   input CompStart,
-  input [8 * 16 - 1:0] PEout,
+  input [127:0] PEout,
   input [15:0] PEready,
   input [3:0] vectorX, vectorY,
   output reg [7:0] bestDistance,
