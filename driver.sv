@@ -26,9 +26,9 @@ class driver;
     wait(!mem_if.start);
     $display(" ================================================= [DRIVER_INFO] Initialized to Default =================================================\n");
     for(j = 0; j < `SMEM_MAX; j++)
-      `DRIV_IF.searchMemory[j] <= 0;
+      mem_if.referenceMemory[j] <= 0;
     for(j = 0; j < `RMEM_MAX; j++)
-      `DRIV_IF.referenceMemory[j] <= 0;
+      mem_if.referenceMemory[j] <= 0;
     wait(mem_if.start);
     $display(" ================================================= [DRIVER_INFO] All Memories Set =================================================");
   endtask
@@ -42,15 +42,15 @@ class driver;
       mem_if.referenceMemory = transactionData.referenceMemory;  // Drive referenceMemory to interface
       mem_if.searchMemory = transactionData.searchMemory;  // Drive searchMemory to interface
       mem_if.start = 1; 
-      @(posedge mem_if.ME_DRIVER.ME_driver_cb.clk);
-      `DRIV_IF.expectedXMotion <= transactionData.expectedXMotion;  // Drive Expected X Motion to interface
-      `DRIV_IF.expectedYMotion <= transactionData.expectedYMotion;  // Drive Expected Y Motion to interface
+      @(posedge mem_if.DriverModport.clk);
+      mem_if.DriverInterface.expectedXMotion <= transactionData.expectedXMotion;  // Drive Expected X Motion to interface
+      mem_if.DriverInterface.expectedYMotion <= transactionData.expectedYMotion;  // Drive Expected Y Motion to interface
       $display("[DRIVER_INFO]     :: Driver Packet Expected X Motion: %d and Expected Y Motion: %d", transactionData.expectedXMotion, transactionData.expectedYMotion);       
       wait(mem_if.completed == 1);  // Wait for DUT to signal completion
       mem_if.start = 0;
       $display("[DRIVER_INFO]     :: DUT sent completed = 1 ");
       no_transactions++;
-      @(posedge mem_if.ME_DRIVER.ME_driver_cb.clk);
+      @(posedge mem_if.DriverModport.clk);
     end
   endtask
 
