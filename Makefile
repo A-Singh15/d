@@ -1,6 +1,6 @@
 # Define the compiler and simulation tools
 VCS = vcs
-VCS_FLAGS = -full64 -debug_all
+VCS_FLAGS = -full64 -debug_all -sverilog
 
 # Define the top-level testbench
 TB = top_tb
