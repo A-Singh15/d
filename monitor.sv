@@ -6,15 +6,15 @@ class monitor;
   int j;
 
   // Virtual interface handle
-  virtual MotionEstimationInterface memoryInterface;
+  virtual MotionEstimationInterface mem_if;
   
   // Mailbox handles for communication with scoreboard and coverage
   mailbox mon2scb;
   mailbox mon2cov;
   
   // Constructor: Initializes the virtual interface and mailboxes
-  function new(virtual MotionEstimationInterface memoryInterface, mailbox mon2scb, mailbox mon2cov);
-    this.memoryInterface = memoryInterface;
+  function new(virtual MotionEstimationInterface mem_if, mailbox mon2scb, mailbox mon2cov);
+    this.mem_if = mem_if;
     this.mon2scb = mon2scb;
     this.mon2cov = mon2cov;
   endfunction
@@ -25,20 +25,20 @@ class monitor;
     forever begin
       Transaction trans, cov_trans;
       trans = new();
-      wait(memoryInterface.start == 1); // Wait for start signal from DUT
-      @(posedge memoryInterface.MonitorInterface.clk);
-      trans.referenceMemory = memoryInterface.referenceMemory; // Capture reference memory state
-      trans.searchMemory = memoryInterface.searchMemory; // Capture search memory state
-      @(posedge memoryInterface.MonitorInterface.clk);
-      trans.expectedXMotion = `MON_IF.expectedXMotion;
-      trans.expectedYMotion = `MON_IF.expectedYMotion;
-      wait(`MON_IF.completed); // Wait for completion signal from DUT
+      wait(mem_if.start == 1); // Wait for start signal from DUT
+      @(posedge mem_if.MonitorModport.clk);
+      trans.referenceMemory = mem_if.referenceMemory; // Capture R memory state
+      trans.searchMemory = mem_if.searchMemory; // Capture S memory state
+      @(posedge mem_if.MonitorModport.clk);
+      trans.expectedXMotion = mem_if.MonitorInterface.expectedXMotion;
+      trans.expectedYMotion = mem_if.MonitorInterface.expectedYMotion;
+      wait(mem_if.completed); // Wait for completion signal from DUT
       $display("[MONITOR_INFO]    :: COMPLETED");
-      trans.bestDistance = `MON_IF.bestDistance;
-      trans.actualXMotion = `MON_IF.motionX;
-      trans.actualYMotion = `MON_IF.motionY;
+      trans.bestDistance = mem_if.MonitorInterface.bestDistance;
+      trans.actualXMotion = mem_if.MonitorInterface.motionX;
+      trans.actualYMotion = mem_if.MonitorInterface.motionY;
 
-      // Adjust actualXMotion and actualYMotion for signed values
+      // Adjust motionX and motionY for signed values
       if (trans.actualXMotion >= 8)
         trans.actualXMotion = trans.actualXMotion - 16;
       if (trans.actualYMotion >= 8)
