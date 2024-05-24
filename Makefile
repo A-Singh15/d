@@ -16,7 +16,8 @@ SRCS = \
     scoreboard.sv \
     test.sv \
     top_tb.sv \
-    top_tb_direct.sv
+    top_tb_direct.sv \
+    transaction.sv
 
 # Define the include directories
 INCLUDES = \
