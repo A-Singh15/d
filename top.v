@@ -20,7 +20,6 @@ module top (
   wire CompStart;
   wire [3:0] VectorX, VectorY;
   wire [127:0] Accumulate;
-  wire [7:0] Rpipe;
 
   control ctl_u(
     .clock(clock), 
@@ -69,16 +68,16 @@ module PE (
     input [7:0] S2,
     input S1S2mux,
     input newDist,
-    output [7:0] Accumulate,
-    output [7:0] Rpipe
+    output reg [7:0] Accumulate,
+    output reg [7:0] Rpipe
 );
-  reg [7:0] Accumulate, AccumulateIn, difference, difference_temp, Rpipe;
+  reg [7:0] AccumulateIn, difference, difference_temp;
   reg Carry;
 
   always @(posedge clock) Rpipe <= R;
   always @(posedge clock) Accumulate <= AccumulateIn;
 
-  always @(R or S1 or S2 or S1S2mux or newDist or Accumulate) begin 
+  always @* begin 
     difference = R - (S1S2mux ? S1 : S2);
     difference_temp = -difference;
     if (difference < 0) 
@@ -97,14 +96,14 @@ module PEend (
     input [7:0] S2,
     input S1S2mux,
     input newDist,
-    output [7:0] Accumulate
+    output reg [7:0] Accumulate
 );
-  reg [7:0] Accumulate, AccumulateIn, difference, difference_temp;
+  reg [7:0] AccumulateIn, difference, difference_temp;
   reg Carry;
 
   always @(posedge clock) Accumulate <= AccumulateIn;
 
-  always @(R or S1 or S2 or S1S2mux or newDist or Accumulate) begin 
+  always @* begin 
     difference = R - (S1S2mux ? S1 : S2);
     difference_temp = -difference;
     if (difference < 0) 
@@ -136,14 +135,14 @@ module control (
   integer i;
 
   reg [11:0] temp;
-  always @ (posedge clock) begin
+  always @(posedge clock) begin
     if (start == 0)
       count <= 12'b0;
     else if (completed == 0)
       count <= count_temp;
   end
 
-  always @ (count) begin
+  always @* begin
     count_temp = count + 1'b1;
     for (i = 0; i < 16; i = i + 1) begin
       newDist[i] = (count[7:0] == i);	
@@ -172,16 +171,16 @@ module Comparator (
     input [127:0] PEout,
     input [15:0] PEready,
     input [3:0] vectorX,
-    input [3:4] vectorY,
+    input [3:0] vectorY,
     output reg [7:0] bestDistance,
     output reg [3:0] motionX,
     output reg [3:0] motionY
 );
-  reg [7:8] newDist;
+  reg [7:0] newDist;
   reg newBest;
   integer n;
 
-  always @ (posedge clock) begin
+  always @(posedge clock) begin
     if (CompStart == 0)
       bestDistance <= 8'hFF;
     else if (newBest == 1) begin
@@ -191,7 +190,7 @@ module Comparator (
     end
   end
 
-  always @ (bestDistance or PEout or PEready or CompStart) begin
+  always @* begin
     newDist = 8'hFF;
 
     for (n = 0; n <= 15; n = n + 1) begin
@@ -279,7 +278,7 @@ module ROM_S (
     output [7:0] S2
 );
   reg [7:0] S1, S2;
-  reg [7:0] Smem[1023:0];
+  reg [7:8] Smem[1023:0];
 
   always @(*) begin
     S1 = Smem[AddressS1];
