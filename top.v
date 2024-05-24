@@ -194,8 +194,8 @@ module Comparator (
     newDist = 8'hFF;
 
     for (n = 0; n <= 15; n = n + 1) begin
-      if (PEready[n] == 1)
-        case (n) 
+      if (PEready[n] == 1) begin
+        case (n)
           4'b0000: newDist = PEout[7:0];
           4'b0001: newDist = PEout[15:8]; 
           4'b0010: newDist = PEout[23:16]; 
@@ -214,10 +214,11 @@ module Comparator (
           4'b1111: newDist = PEout[127:120];
           default: newDist = 8'hFF;  
         endcase
+      end
     end
 
     if ((|PEready == 0) || (CompStart == 0))
-      newBest = 0;
+      newBest = 0; // no PE is ready
     else if (newDist < bestDistance)
       newBest = 1;
     else
@@ -225,7 +226,7 @@ module Comparator (
   end
 endmodule
 
-/* Module For Total 16 Processing Elements (PEtotal) */
+/* Module For Total 16 Processing Elements (PEtotal)*/
 module PEtotal (
     input clock,
     input [7:0] R,
@@ -260,13 +261,10 @@ endmodule
 module ROM_R (
     input clock,
     input [7:0] AddressR,
-    output [7:0] R
+    output reg [7:0] R
 );
-  reg [7:0] R;
   reg [7:0] Rmem[255:0];
-
   always @(*) R = Rmem[AddressR];
-
 endmodule
 
 /* Module For Search Block (Memory) */
@@ -274,15 +272,12 @@ module ROM_S (
     input clock,
     input [9:0] AddressS1,
     input [9:0] AddressS2,
-    output [7:0] S1,
-    output [7:0] S2
+    output reg [7:0] S1,
+    output reg [7:0] S2
 );
-  reg [7:0] S1, S2;
-  reg [7:8] Smem[1023:0];
-
+  reg [7:0] Smem[1023:0];
   always @(*) begin
     S1 = Smem[AddressS1];
     S2 = Smem[AddressS2];
   end
-
 endmodule
