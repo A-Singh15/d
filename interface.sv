@@ -3,7 +3,7 @@
 `default_nettype none
 
 // Memory Estimator Interface
-interface MotionEstimationInterface (input bit clk);
+interface MotionEstimationInterface (bit clk);
 
   // Signals
   bit start; 
