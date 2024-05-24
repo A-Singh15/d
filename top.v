@@ -4,7 +4,7 @@
 module top (
   input clock,
   input start,
-  output [7:0] bestDistance,  // Updated
+  output [7:0] bestDistance,
   output [3:0] motionX, motionY,
   output completed,
   input [7:0] R, S1, S2,
@@ -50,7 +50,7 @@ module top (
     .PEready(PEready),
     .VectorX(VectorX),
     .VectorY(VectorY),
-    .bestDistance(bestDistance),  // Updated
+    .bestDistance(bestDistance),
     .motionX(motionX),
     .motionY(motionY)
   );
@@ -60,8 +60,8 @@ endmodule
 /* Module For Processing Element (PE) */
 module PE (
   input clock,
-  input [7:0] R, S1, S2,  // memory inputs
-  input S1S2mux, newDist,  // control input
+  input [7:0] R, S1, S2,
+  input S1S2mux, newDist,
   output [7:0] Accumulate, Rpipe
 );
   reg [7:0] Accumulate, AccumulateIn, difference, difference_temp, Rpipe;
@@ -83,8 +83,8 @@ endmodule
 /* Module For The Last Processing Element (PEend) */
 module PEend (
   input clock,
-  input [7:0] R, S1, S2,  // memory inputs
-  input S1S2mux, newDist,  // control input
+  input [7:0] R, S1, S2,
+  input S1S2mux, newDist,
   output [7:0] Accumulate
 );
   reg [7:0] Accumulate, AccumulateIn, difference, difference_temp;
@@ -105,25 +105,20 @@ endmodule
 /* Module For Control Unit */
 module control (
   input clock,
-  input start,  // = 1 when going
-  output [15:0] S1S2mux, newDist, PEready,
-  output CompStart,
-  output [3:0] VectorX, VectorY,
-  output [7:0] AddressR,
-  output [9:0] AddressS1, AddressS2,
+  input start,
+  output reg [15:0] S1S2mux, newDist, PEready,
+  output reg CompStart,
+  output reg [3:0] VectorX, VectorY,
+  output reg [7:0] AddressR,
+  output reg [9:0] AddressS1, AddressS2,
   output reg completed
 );
   parameter count_complete = 16 * (16 * 16) + 15;  // 4111
 
-  reg [15:0] S1S2mux, newDist, PEready;
-  reg CompStart;
-  reg [3:0] VectorX, VectorY;
-  reg [7:0] AddressR;
-  reg [9:0] AddressS1, AddressS2;
   reg [12:0] count, count_temp;
   integer i;
-
   reg [11:0] temp;
+
   always @(posedge clock) begin
     if (start == 0) count <= 12'b0;
     else if (completed == 0) count <= count_temp;
@@ -154,15 +149,14 @@ endmodule
 /* Module For Comparator Unit */
 module Comparator (
   input clock,
-  input CompStart,  // goes high when distortion calculation start
-  input [8 * 16 - 1:0] PEout,  // outputs of PEs as one long vector
-  input [15:0] PEready,  // goes high when that PE has a new distortion
-  input [3:0] vectorX, vectorY,  // motion vector being evaluated
-  output [7:0] bestDistance,  // best distortion vector so far
-  output [3:0] motionX, motionY  // best motion vector so far
+  input CompStart,
+  input [8 * 16 - 1:0] PEout,
+  input [15:0] PEready,
+  input [3:0] vectorX, vectorY,
+  output reg [7:0] bestDistance,
+  output reg [3:0] motionX, motionY
 );
-  reg [7:0] bestDistance, newDist;
-  reg [3:0] motionX, motionY;
+  reg [7:0] newDist;
   reg newBest;
   integer n;
 
@@ -210,8 +204,8 @@ endmodule
 /* Module For Total 16 Processing Elements (PEtotal) */
 module PEtotal (
   input clock,
-  input [7:0] R, S1, S2,  // memory inputs
-  input [15:0] S1S2mux, newDist,  // control input
+  input [7:0] R, S1, S2,
+  input [15:0] S1S2mux, newDist,
   output [127:0] Accumulate
 );
 
