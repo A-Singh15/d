@@ -22,9 +22,42 @@ module top (
   wire [127:0] Accumulate;
   wire [7:0] Rpipe;
 
-  control ctl_u(clock, start, S1S2mux, newDist, CompStart, PEready, VectorX, VectorY, AddressR, AddressS1, AddressS2, completed);
-  PEtotal pe_u(clock, R, S1, S2, S1S2mux, newDist, Accumulate);
-  Comparator comp_u(clock, CompStart, Accumulate, PEready, VectorX, VectorY, bestDistance, motionX, motionY);
+  control ctl_u(
+    .clock(clock), 
+    .start(start), 
+    .S1S2mux(S1S2mux), 
+    .newDist(newDist), 
+    .CompStart(CompStart), 
+    .PEready(PEready), 
+    .VectorX(VectorX), 
+    .VectorY(VectorY), 
+    .AddressR(AddressR), 
+    .AddressS1(AddressS1), 
+    .AddressS2(AddressS2), 
+    .completed(completed)
+  );
+
+  PEtotal pe_u(
+    .clock(clock), 
+    .R(R), 
+    .S1(S1), 
+    .S2(S2), 
+    .S1S2mux(S1S2mux), 
+    .newDist(newDist), 
+    .Accumulate(Accumulate)
+  );
+
+  Comparator comp_u(
+    .clock(clock), 
+    .CompStart(CompStart), 
+    .PEout(Accumulate), 
+    .PEready(PEready), 
+    .vectorX(VectorX), 
+    .vectorY(VectorY), 
+    .bestDistance(bestDistance), 
+    .motionX(motionX), 
+    .motionY(motionY)
+  );
 
 endmodule
 
@@ -144,7 +177,7 @@ module Comparator (
     output reg [3:0] motionX,
     output reg [3:0] motionY
 );
-  reg [7:0] newDist;
+  reg [7:8] newDist;
   reg newBest;
   integer n;
 
@@ -193,7 +226,7 @@ module Comparator (
   end
 endmodule
 
-/* Module For Total 16 Processing Elements (PEtotal)*/
+/* Module For Total 16 Processing Elements (PEtotal) */
 module PEtotal (
     input clock,
     input [7:0] R,
