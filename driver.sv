@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 `include "defines.sv"
-`include "interface.sv" // Ensure to include the interface definition
+`include "transaction.sv"
 
 class driver;
 
@@ -9,27 +9,27 @@ class driver;
   int no_transactions, j;             
 
   // Virtual interface handle
-  virtual MotionEstimationInterface mem_if;      
+  virtual MotionEstimationInterface memIntf;      
 
   // Mailbox handle for Gen2Driver
   mailbox gen2driv;                   
   
   // Constructor: Initializes the virtual interface and mailbox
-  function new(virtual MotionEstimationInterface mem_if, mailbox gen2driv);
-    this.mem_if = mem_if; 
+  function new(virtual MotionEstimationInterface memIntf, mailbox gen2driv);
+    this.memIntf = memIntf; 
     this.gen2driv = gen2driv;     
   endfunction
   
   // Start task: Resets the values in memories before starting the operation
   task start;
-    $display(" ================================================= Start of driver, mem_if.start: %b =================================================\n", mem_if.start);
-    wait(!mem_if.start);
+    $display(" ================================================= Start of driver, memIntf.start: %b =================================================\n", memIntf.start);
+    wait(!memIntf.start);
     $display(" ================================================= [DRIVER_INFO] Initialized to Default =================================================\n");
     for(j = 0; j < `SMEM_MAX; j++)
-      mem_if.referenceMemory[j] <= 0;
+      memIntf.searchMemory[j] <= 0;
     for(j = 0; j < `RMEM_MAX; j++)
-      mem_if.referenceMemory[j] <= 0;
-    wait(mem_if.start);
+      memIntf.referenceMemory[j] <= 0;
+    wait(memIntf.start);
     $display(" ================================================= [DRIVER_INFO] All Memories Set =================================================");
   endtask
   
@@ -39,18 +39,18 @@ class driver;
     forever begin
       gen2driv.get(transactionData);
       $display(" ================================================= [DRIVER_INFO] :: Driving Transaction %0d ================================================= ", no_transactions);
-      mem_if.referenceMemory = transactionData.referenceMemory;  // Drive referenceMemory to interface
-      mem_if.searchMemory = transactionData.searchMemory;  // Drive searchMemory to interface
-      mem_if.start = 1; 
-      @(posedge mem_if.DriverModport.clk);
-      mem_if.DriverInterface.expectedXMotion <= transactionData.expectedXMotion;  // Drive Expected X Motion to interface
-      mem_if.DriverInterface.expectedYMotion <= transactionData.expectedYMotion;  // Drive Expected Y Motion to interface
+      memIntf.referenceMemory = transactionData.referenceMemory;  // Drive referenceMemory to interface
+      memIntf.searchMemory = transactionData.searchMemory;  // Drive searchMemory to interface
+      memIntf.start = 1; 
+      @(posedge memIntf.DriverInterface.clk);
+      memIntf.expectedXMotion <= transactionData.expectedXMotion;  // Drive Expected Motion X to interface
+      memIntf.expectedYMotion <= transactionData.expectedYMotion;  // Drive Expected Motion Y to interface
       $display("[DRIVER_INFO]     :: Driver Packet Expected X Motion: %d and Expected Y Motion: %d", transactionData.expectedXMotion, transactionData.expectedYMotion);       
-      wait(mem_if.completed == 1);  // Wait for DUT to signal completion
-      mem_if.start = 0;
+      wait(memIntf.completed == 1);  // Wait for DUT to signal completion
+      memIntf.start = 0;
       $display("[DRIVER_INFO]     :: DUT sent completed = 1 ");
       no_transactions++;
-      @(posedge mem_if.DriverModport.clk);
+      @(posedge memIntf.DriverInterface.clk);
     end
   endtask
 
